@@ -17,21 +17,34 @@ Token file format (`~/.quicks/token.json`):
 
 Save: `mkdir -p ~/.quicks && echo '{ "baseUrl": "<URL>" }' > ~/.quicks/token.json`
 
-## API
+## Notes (markdown) API
 
-Auth token is embedded in the URL — no headers needed.
+Simple endpoints for markdown notes — use these for notes operations:
 
-- `GET {base}` → `{ widgets, pages }` — list all pages and widget schemas
+- `POST {base}/pages/{path}/notes` with `{ name?, text }` — create notes card (201, returns `{ id }`)
+- `GET {base}/pages/{path}/notes/{cardId}` — read notes card (returns `{ id, name, text }`)
+- `PUT {base}/pages/{path}/notes/{cardId}` with `{ text }` — update notes card
+
+## Generic API
+
+For all card types:
+
+- `GET {base}` → `{ widgets, pages }` — list pages and widget schemas
 - `GET {base}/pages/{path}` → `{ page, cards }` — read page with all cards
+- `POST {base}/pages/{path}/cards` with `{ type, name?, data? }` — create a card (returns `{ id }`)
 - `PUT {base}/pages/{path}` with `{ cards: [{ id, data }] }` — update cards
+- `POST {base}/pages` with `{ parentPath?, slug, name }` — create a page
+
+## JSON validation (bun)
+
+```bash
+echo '{"text":"# Hello"}' | bun run validate.ts create-note
+echo '{"cards":[{"id":"Notes","data":{"text":"..."}}]}' | bun run validate.ts update-cards
+```
 
 ## Field types
 - `type: "text"` = long markdown content
 - `type: "string"` = short value
 
-## Card status
-`"empty"` | `"processing"` | `"done"` | `"error"`
-
 ## Errors
-- 401 = bad token
-- 404 = page not found
+- 401 = bad token, 404 = page/card not found, 400 = validation error

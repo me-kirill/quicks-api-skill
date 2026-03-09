@@ -4,7 +4,7 @@ description: >
   Interact with Quicks workspace via the external JSON API. Use when the user
   provides a quicks.ai URL (contains /api/x/), asks to read/write workspace
   pages or cards, or wants to give an LLM access to their workspace data.
-allowed-tools: WebFetch
+allowed-tools: WebFetch, Bash
 ---
 
 # Quicks Workspace API
@@ -36,13 +36,31 @@ EOF
 cat ~/.quicks/token.json
 ```
 
-## API workflow
+## Notes (markdown) endpoints
 
-1. `GET {base}` → returns `{ api, widgets, pages }`
-2. `GET {base}/pages/{path}` → returns `{ page, cards }` with all card data
-3. `PUT {base}/pages/{path}` with `{ cards: [{ id, data }] }` → updates cards
+Simple endpoints for working with markdown notes directly.
 
-## Endpoints
+### POST `{base}/pages/{path}/notes`
+Create a notes card with markdown.
+```json
+{ "name": "My Notes", "text": "# Hello\n\nMarkdown content." }
+```
+Response: `{ "id": "My_Notes" }` (201)
+
+### GET `{base}/pages/{path}/notes/{cardId}`
+Read a notes card.
+```json
+{ "id": "My_Notes", "name": "My Notes", "text": "# Hello\n\nMarkdown content." }
+```
+
+### PUT `{base}/pages/{path}/notes/{cardId}`
+Update a notes card with markdown.
+```json
+{ "text": "# Updated\n\nNew markdown content." }
+```
+Response: `{ "ok": true }`
+
+## Generic endpoints
 
 ### GET `{base}`
 Returns widget schemas and page list.
@@ -56,7 +74,7 @@ Returns widget schemas and page list.
 ```
 
 ### GET `{base}/pages/{path}`
-Read a page with cards.
+Read a page with all cards.
 ```json
 {
   "page": { "name": "My Page", "path": "project/my-page" },
@@ -64,14 +82,36 @@ Read a page with cards.
 }
 ```
 
+### POST `{base}/pages/{path}/cards`
+Create a card of any type.
+```json
+{ "type": "notes", "name": "My Notes", "data": { "text": "# Hello" } }
+```
+Response: `{ "id": "My_Notes" }` (201)
+
 ### PUT `{base}/pages/{path}`
 Update cards. Send only changed cards and fields.
 ```json
-{ "cards": [{ "id": "Notes", "data": { "text": "New content" } }] }
+{ "cards": [{ "id": "Notes", "data": { "text": "# Updated" } }] }
+```
+
+### POST `{base}/pages`
+Create a page.
+```json
+{ "parentPath": "project", "slug": "new-page", "name": "New Page" }
+```
+Response: `{ "path": "project/new-page" }`
+
+## JSON validation (bun)
+
+```bash
+echo '{"text":"# Hello"}' | bun run validate.ts create-note
+echo '{"cards":[{"id":"Notes","data":{"text":"..."}}]}' | bun run validate.ts update-cards
+echo '{"type":"notes","data":{"text":"# Hello"}}' | bun run validate.ts create-card
+echo '{"slug":"new","name":"New"}' | bun run validate.ts create-page
 ```
 
 ## Tips
-- Field names must match widget schema (check `widgets` from root endpoint)
 - `type: "text"` = long markdown content, `type: "string"` = short value
 - Card `status`: `"empty"` | `"processing"` | `"done"` | `"error"`
-- Errors: 401 = bad token, 404 = page not found
+- Errors: 401 = bad token, 404 = page not found, 400 = validation error
