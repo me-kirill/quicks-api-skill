@@ -17,7 +17,7 @@ On every invocation, resolve the base URL in this order:
 
 1. **User provided a URL** (contains `/api/x/`) → extract base URL, save to `~/.quicks/token.json`
 2. **File `~/.quicks/token.json` exists** → read and use `baseUrl` from it
-3. **Neither** → ask the user for their Quicks API URL
+3. **Neither** → ask the user to get their API URL at https://3.quicks.ai/account
 
 ### Token file format (`~/.quicks/token.json`)
 ```json
