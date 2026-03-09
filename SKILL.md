@@ -36,31 +36,13 @@ EOF
 cat ~/.quicks/token.json
 ```
 
-## Notes (markdown) endpoints
+## URL encoding
 
-Simple endpoints for working with markdown notes directly.
+Paths may contain non-ASCII characters (Cyrillic, etc.). Always use the path exactly as returned by `GET {base}` (the pages list). Do NOT manually URL-encode path segments — `curl` and `WebFetch` handle encoding automatically.
 
-### POST `{base}/pages/{path}/notes`
-Create a notes card with markdown.
-```json
-{ "name": "My Notes", "text": "# Hello\n\nMarkdown content." }
-```
-Response: `{ "id": "My_Notes" }` (201)
+## Generic endpoints (recommended)
 
-### GET `{base}/pages/{path}/notes/{cardId}`
-Read a notes card.
-```json
-{ "id": "My_Notes", "name": "My Notes", "text": "# Hello\n\nMarkdown content." }
-```
-
-### PUT `{base}/pages/{path}/notes/{cardId}`
-Update a notes card with markdown.
-```json
-{ "text": "# Updated\n\nNew markdown content." }
-```
-Response: `{ "ok": true }`
-
-## Generic endpoints
+Use these for all operations — they work reliably with all path types.
 
 ### GET `{base}`
 Returns widget schemas and page list.
@@ -82,6 +64,12 @@ Read a page with all cards.
 }
 ```
 
+### PUT `{base}/pages/{path}`
+Update cards. Send only changed cards and fields. **Primary way to update notes.**
+```json
+{ "cards": [{ "id": "Notes", "data": { "text": "# Updated content" } }] }
+```
+
 ### POST `{base}/pages/{path}/cards`
 Create a card of any type.
 ```json
@@ -89,18 +77,36 @@ Create a card of any type.
 ```
 Response: `{ "id": "My_Notes" }` (201)
 
-### PUT `{base}/pages/{path}`
-Update cards. Send only changed cards and fields.
-```json
-{ "cards": [{ "id": "Notes", "data": { "text": "# Updated" } }] }
-```
-
 ### POST `{base}/pages`
 Create a page.
 ```json
 { "parentPath": "project", "slug": "new-page", "name": "New Page" }
 ```
 Response: `{ "path": "project/new-page" }`
+
+## Notes shortcut endpoints
+
+Convenience endpoints for notes cards. Text is stored as-is (markdown when sent via API, may be TipTap HTML for notes created in the web UI).
+
+### POST `{base}/pages/{path}/notes`
+Create a notes card.
+```json
+{ "name": "My Notes", "text": "# Hello\n\nMarkdown content." }
+```
+Response: `{ "id": "My_Notes" }` (201)
+
+### GET `{base}/pages/{path}/notes/{cardId}`
+Read a notes card.
+```json
+{ "id": "My_Notes", "name": "My Notes", "text": "# Hello\n\nMarkdown content." }
+```
+
+### PUT `{base}/pages/{path}/notes/{cardId}`
+Update a notes card.
+```json
+{ "text": "# Updated\n\nNew content." }
+```
+Response: `{ "ok": true }`
 
 ## JSON validation (bun)
 
@@ -115,3 +121,5 @@ echo '{"slug":"new","name":"New"}' | bun run validate.ts create-page
 - `type: "text"` = long markdown content, `type: "string"` = short value
 - Card `status`: `"empty"` | `"processing"` | `"done"` | `"error"`
 - Errors: 401 = bad token, 404 = page not found, 400 = validation error
+- Before adding content, read the page first to check for duplicates
+- Prefer `PUT /pages/{path}` over notes endpoints — it works with all card types and paths

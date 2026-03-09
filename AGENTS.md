@@ -17,23 +17,23 @@ Token file format (`~/.quicks/token.json`):
 
 Save: `mkdir -p ~/.quicks && echo '{ "baseUrl": "<URL>" }' > ~/.quicks/token.json`
 
-## Notes (markdown) API
+## Generic API (recommended)
 
-Simple endpoints for markdown notes — use these for notes operations:
+For all card types. Use paths exactly as returned by the list endpoint.
+
+- `GET {base}` → `{ widgets, pages }` — list pages and widget schemas
+- `GET {base}/pages/{path}` → `{ page, cards }` — read page with all cards
+- `PUT {base}/pages/{path}` with `{ cards: [{ id, data }] }` — **update cards (preferred)**
+- `POST {base}/pages/{path}/cards` with `{ type, name?, data? }` — create a card (returns `{ id }`)
+- `POST {base}/pages` with `{ parentPath?, slug, name }` — create a page
+
+## Notes shortcut API
+
+Convenience endpoints for notes cards. Text stored as-is (markdown via API, may be TipTap HTML from web UI).
 
 - `POST {base}/pages/{path}/notes` with `{ name?, text }` — create notes card (201, returns `{ id }`)
 - `GET {base}/pages/{path}/notes/{cardId}` — read notes card (returns `{ id, name, text }`)
 - `PUT {base}/pages/{path}/notes/{cardId}` with `{ text }` — update notes card
-
-## Generic API
-
-For all card types:
-
-- `GET {base}` → `{ widgets, pages }` — list pages and widget schemas
-- `GET {base}/pages/{path}` → `{ page, cards }` — read page with all cards
-- `POST {base}/pages/{path}/cards` with `{ type, name?, data? }` — create a card (returns `{ id }`)
-- `PUT {base}/pages/{path}` with `{ cards: [{ id, data }] }` — update cards
-- `POST {base}/pages` with `{ parentPath?, slug, name }` — create a page
 
 ## JSON validation (bun)
 
@@ -46,5 +46,7 @@ echo '{"cards":[{"id":"Notes","data":{"text":"..."}}]}' | bun run validate.ts up
 - `type: "text"` = long markdown content
 - `type: "string"` = short value
 
-## Errors
-- 401 = bad token, 404 = page/card not found, 400 = validation error
+## Tips
+- Prefer `PUT /pages/{path}` over notes endpoints for reliability
+- Read page before adding content to avoid duplicates
+- Errors: 401 = bad token, 404 = page/card not found, 400 = validation error
