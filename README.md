@@ -4,31 +4,11 @@ Give LLM coding agents (Claude Code, Codex, Cursor) read & write access to your 
 
 ## Install
 
-### Claude Code
-
-Download `quicks-api.skill` from your [account page](https://app.quicks.ai/account) and open it, or:
+Clone this repo into your skills directory:
 
 ```bash
-claude install-skill /path/to/quicks-api.skill
+git clone https://github.com/me-kirill/quicks-api-skill.git ~/.claude/skills/quicks-api
 ```
-
-### Codex
-
-```bash
-$skill-installer
-# Point to this repository
-```
-
-Or manually:
-
-```bash
-git clone https://github.com/anthropics/quicks-api-skill.git
-cp -R quicks-api-skill ~/.agents/skills/quicks-api
-```
-
-### Any LLM agent
-
-Copy your API URL from [account settings](https://app.quicks.ai/account) and paste it into your agent. The URL is self-documenting — `GET` it to see all endpoints, schemas, and pages.
 
 ## Setup
 
