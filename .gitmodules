@@ -1,0 +1,3 @@
+[submodule "apps/skill"]
+	path = apps/skill
+	url = git@github.com:me-kirill/quicks-api-skill.git
